@@ -7,7 +7,7 @@ import tkinter as tk
 import datetime
 
 detector = dlib.get_frontal_face_detector()
-path = '/Users/GakutoSasabe/Desktop/Research/OpencvEyetracking/shape_predictor_68_face_landmarks.dat'
+path = '/Users/naokishitanda/my_gitcodes/eyesight-estimation/eyesight-tracking/OpenCVEyeTracking/shape_predictor_68_face_landmarks.dat'
 predictor = dlib.shape_predictor(path)
 pupil_locate_list = [['date','time','right_eye_x','right_eye_y','left_eye_x','left_eye_y']]
 
