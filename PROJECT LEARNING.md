@@ -23,6 +23,7 @@ MEDIEPIPE ref:https://github.com/Mostafa-Nafie/Head-Pose-Estimation
 ### 面部方向
 - 为了得到面部具体的方向，我们需要建立一个3D空间，将点转化为线，来尝试记录随着头运动，夹角的变化
 - x，y两个轴将为脸部的旋转角度提供了可靠的依据
+REF: https://towardsdatascience.com/face-detection-models-which-to-use-and-why-d263e82c302c?source=friends_link&sk=c9e2807cf216115d7bb5a9b827bb26f8
 ### 出现的问题
 #### 代码输入错误
 - 将github代码下载后，部分地址指令会出现错误，这是由于在GitHub上在本文件夹内搜索得到的文件，在电脑中有较长的前缀，文件也会跑到错误的文件夹。
