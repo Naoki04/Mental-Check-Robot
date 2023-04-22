@@ -2,5 +2,5 @@
 import whisper
 
 model = whisper.load_model("base.en")
-result = model.transcribe("test1.mp3")
+result = model.transcribe("data/test1.mp3")
 print(result["text"])
