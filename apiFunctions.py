@@ -5,6 +5,8 @@ from scipy.io.wavfile import write
 import time
 import datetime
 from tqdm import tqdm
+import pygame.mixer
+from mutagen.mp3 import MP3
 
 def record(idx, sr, framesize, t):
     pa = pyaudio.PyAudio() # PyAudioインスタンスの作成
@@ -33,10 +35,73 @@ def record(idx, sr, framesize, t):
     # pyaudio.paInt16で量子化しているため「2^(16-1)-1」で正規化している
     data_show = np.frombuffer(data, dtype="int16") / float((np.power(2, 16) / 2) - 1)
 
-    filename = "data/"+datetime.datetime.now().strftime("%Y%m%d_%H%M%S")+".wav"
+    filename = "data/record/"+datetime.datetime.now().strftime("%Y%m%d_%H%M%S")+".wav"
     write(filename, sr, data)
 
     return filename #data, data_show, i
+
+
+def play(filename):
+    # Check length
+    audio = MP3(filename)
+    length = audio.info.length
+
+    # mixerモジュールの初期化
+    pygame.mixer.init()
+    # 音楽ファイルの読み込み
+    pygame.mixer.music.load(filename)
+    # 音楽再生、および再生回数の設定(-1はループ再生)
+    pygame.mixer.music.play(1)
+    time.sleep(length)
+    # 再生の終了
+    pygame.mixer.music.stop()
+
+
+
+
+def texttospeech(text):
+    # [START tts_quickstart]
+    """Synthesizes speech from the input string of text or ssml.
+ 
+    Note: ssml must be well-formed according to:
+        https://www.w3.org/TR/speech-synthesis/
+    """
+
+    from google.cloud import texttospeech
+    
+ 
+    # Instantiates a client
+    client = texttospeech.TextToSpeechClient()
+ 
+    # Set the text input to be synthesized
+    synthesis_input = texttospeech.SynthesisInput(text=text)
+ 
+    # Build the voice request, select the language code ("en-US") and the ssml
+    # voice gender ("neutral")
+    voice = texttospeech.VoiceSelectionParams(
+        language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
+    )
+ 
+    # Select the type of audio file you want returned
+    audio_config = texttospeech.AudioConfig(
+        audio_encoding=texttospeech.AudioEncoding.MP3
+    )
+ 
+    # Perform the text-to-speech request on the text input with the selected
+    # voice parameters and audio file type
+    response = client.synthesize_speech(
+        input=synthesis_input, voice=voice, audio_config=audio_config
+    )
+    
+    filename = "data/speech/"+datetime.datetime.now().strftime("%Y%m%d_%H%M%S")+".mp3"
+    # The response's audio_content is binary.
+    with open(filename, "wb") as out:
+        # Write the response to the output file.
+        out.write(response.audio_content)
+        #print('Audio content written to file "')
+    # [END tts_quickstart]
+
+    return filename
 
 
 def main():
@@ -63,6 +128,7 @@ def main():
     plt.show()
     """
     write("data/audio_record.wav", sr, data)
+
 
 
 if __name__ == "__main__":

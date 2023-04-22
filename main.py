@@ -8,6 +8,8 @@ import warnings
 import whisper
 import openai
 
+# Sometimes, Google Login is required.
+# !gcloud auth application-default login
 
 """
 Settings
@@ -60,9 +62,15 @@ def initialize():
 
 def main():
     pa, whisper_model = initialize()
-    print("Hello, I'm David, how are you doing today?")
+    
+    initial_text = "Hello, I'm David, how are you doing today?"
+    print(initial_text)
+    filename = api.texttospeech(initial_text)
+    api.play(filename)
+    print("played")
+    
     while True:
-        time.sleep(5)
+        #time.sleep(7)
         # Count down
         print("3")
         time.sleep(1)
@@ -103,15 +111,14 @@ def main():
             }
         )
 
+        # Text -> Audio
+        filename = api.texttospeech(reply)
+        api.play(filename)
+
 
 if __name__ == "__main__":
     main()
 
 
-
-import openai
-import yaml
-
-# Load settings
 
 
