@@ -18,10 +18,15 @@ Settings
 sr = 44100        # サンプリングレート
 framesize = 1024  # フレームサイズ
 idx = 0           # マイクのチャンネル
-t = 10             # 計測時間[s]
+t = 12            # 計測時間[s]
 
 device_num = 1
 
+initial_text = "Hello, I'm David. How are you doing today?"
+charactor_setting = {
+        "role": "system",
+        "content": "You are a professional clinical psychologist who is friendly and like short conversations. mainly, he reply only in 3 or 4 sentents in conversation."
+    }
 warnings.simplefilter('ignore')
 
 
@@ -29,17 +34,14 @@ warnings.simplefilter('ignore')
 Variables
 """
 messages = [
-    {
-        "role": "system",
-        "content": "You are a professional clinical psychologist who is friendly and like short conversations."
-    },
+    charactor_setting,   
     {
         "role": "assistant",
         "content": "Today let's talk about your daily life like daily conversation."
     },
     {
         "role": "assistant",
-        "content": "Hello, I'm David, how are you doing today?"
+        "content": initial_text
     },
 ]
 
@@ -101,15 +103,15 @@ def emotion_check(emotion_array):
     return result
 
 def topic_control(emotion_array, topic_style):
-    if emotion_array["joy"] >= 1.5:
+    if emotion_array["joy"] >= 1.1:
         operation = {
             "role": "system",
             "content": "The user looks like feeling joy in the last six interaction about" + topic_style + ". Please keep the topic and naturally without realized by the user to make the user feeling good."
         }
-    elif emotion_array[max(emotion_array)] >= 0.25:
+    elif max(emotion_array.values()) >= 0.13 and max(emotion_array, key=emotion_array.get)!="joy":
         operation = {
             "role": "system",
-            "content": "The user looks like feeling " + max(emotion_array) + " in the last six interaction about" + topic_style + ". Please change the topic to something else naturally without realized by the user."
+            "content": "The user looks like feeling " + max(emotion_array.values()) + " in the last six interaction about" + topic_style + ". Please change the topic to something else naturally without realized by the user."
         }
     else:
         operation = "None"
@@ -121,7 +123,7 @@ def topic_control(emotion_array, topic_style):
 def main():
     pa, whisper_model, cap = initialize()
     
-    initial_text = "Hello, I'm David, how are you doing today?"
+    # Initial Message
     print(initial_text)
     filename = api.texttospeech(initial_text)
     api.play(filename)
@@ -198,7 +200,9 @@ def main():
             current_emotion = emotion_check(emotion_array)
             # Add Operation
             operation = topic_control(current_emotion, topic_style)
-            messages.append(operation)
+            if operation != "None":
+                messages.append(operation)
+                messages.append(charactor_setting)
 
     #メモリを解放して終了するためのコマンド
     cap.release()
@@ -209,8 +213,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    #メモリを解放して終了するためのコマンド
-    
-
-
-
