@@ -7,6 +7,10 @@ import datetime
 from tqdm import tqdm
 import pygame.mixer
 from mutagen.mp3 import MP3
+import cv2
+
+from google.cloud import vision
+import io   
 
 def record(idx, sr, framesize, t):
     pa = pyaudio.PyAudio() # PyAudioインスタンスの作成
@@ -102,6 +106,58 @@ def texttospeech(text):
     # [END tts_quickstart]
 
     return filename
+
+def capture_image(cap):
+    #カメラからの画像取得
+    ret, frame = cap.read()
+
+    filename = "data/face/"+datetime.datetime.now().strftime("%Y%m%d_%H%M%S")+".jpg"
+    cv2.imwrite(filename, frame)
+
+    return filename
+
+def emotion_recognition(filename):
+    
+    """Detects faces in an image."""
+    client = vision.ImageAnnotatorClient()
+
+    with io.open(filename, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.Image(content=content)
+
+    response = client.face_detection(image=image)
+    faces = response.face_annotations
+
+    # Names of likelihood from google.cloud.vision.enums
+    """
+    likelihood_name = ('UNKNOWN', 'VERY_UNLIKELY', 'UNLIKELY', 'POSSIBLE',
+                       'LIKELY', 'VERY_LIKELY')
+    """
+    likelihood_name = ('0', '0', '1', '2',
+                       '3', '4')
+    print('Faces:')
+
+    for face in faces:
+        #print('joy: {}'.format(likelihood_name[face.joy_likelihood]))
+        #print('sorrow: {}'.format(likelihood_name[face.sorrow_likelihood]))
+        #print('anger: {}'.format(likelihood_name[face.anger_likelihood]))
+        #print('surprise: {}'.format(likelihood_name[face.surprise_likelihood]))
+
+        vertices = (['({},{})'.format(vertex.x, vertex.y)
+                    for vertex in face.bounding_poly.vertices])
+
+        #print('face bounds: {}'.format(','.join(vertices)))
+    return {"joy":likelihood_name[face.joy_likelihood], "sorrow":likelihood_name[face.sorrow_likelihood], "anger":likelihood_name[face.anger_likelihood], "surprise":likelihood_name[face.surprise_likelihood]}
+
+
+
+    if response.error.message:
+        raise Exception(
+            '{}\nFor more info on error messages, check: '
+            'https://cloud.google.com/apis/design/errors'.format(
+                response.error.message))
+
 
 
 def main():
