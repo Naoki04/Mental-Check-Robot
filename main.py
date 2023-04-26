@@ -84,7 +84,7 @@ def check_topic(messages):
     return response['choices'][0]['message']['content']
  
 
-def emotion_check(emotion_array):
+def emotion_check(emotion_array): # Using Google Cloud Vision API
     print("~~EMOTION CHECK~~")
     recent_emotions =  emotion_array[-6:] # extruct last 6 emotions
     joy = 0
@@ -102,16 +102,34 @@ def emotion_check(emotion_array):
 
     return result
 
+def emotion_check2(emotion_array): # Using UserLocal's emotion API
+    print("~~EMOTION CHECK~~")
+    recent_emotions =  emotion_array[-6:] # extruct last 6 emotions
+    happy = 0
+    sad = 0
+    surprise = 0
+    anger = 0
+    n = len(recent_emotions)
+    for emotion in recent_emotions:
+        happy += emotion["happy"]/n
+        sad += emotion["sad"]/n
+        surprise += emotion["surprise"]/n
+        anger += emotion["anger"]/n
+    result = {"happy": happy, "sad": sad, "surprise": surprise, "anger": anger}
+    print(result)
+
+    return result
+
 def topic_control(emotion_array, topic_style):
-    if emotion_array["joy"] >= 1.1:
+    if emotion_array["happy"] >= 0.5:
         operation = {
             "role": "system",
-            "content": "The user looks like feeling joy in the last six interaction about" + topic_style + ". Please keep the topic and naturally without realized by the user to make the user feeling good."
+            "content": "The user looks like feeling happy in the last six interaction about" + topic_style + ". Please keep the topic and naturally without realized by the user to make the user feeling good."
         }
-    elif max(emotion_array.values()) >= 0.13 and max(emotion_array, key=emotion_array.get)!="joy":
+    elif max(emotion_array.values()) >= 0.2 and max(emotion_array, key=emotion_array.get)!="happy":
         operation = {
             "role": "system",
-            "content": "The user looks like feeling " + max(emotion_array.values()) + " in the last six interaction about" + topic_style + ". Please change the topic to something else naturally without realized by the user."
+            "content": "The user looks like feeling " + max(emotion_array, key=emotion_array.get) + " in the last six interaction about" + topic_style + ". Please change the topic to something else naturally without realized by the user."
         }
     else:
         operation = "None"
@@ -148,7 +166,7 @@ def main():
 
         # Emotion Check2
         image = api.capture_image(cap)
-        result_emotion = api.emotion_recognition(image)
+        result_emotion = api.emotion_recognition2(image)
         print(result_emotion)
         emotion_array.append(result_emotion)
 
@@ -185,7 +203,7 @@ def main():
 
         # Emotion Check2
         image = api.capture_image(cap)
-        result_emotion = api.emotion_recognition(image)
+        result_emotion = api.emotion_recognition2(image)
         print(result_emotion)
         emotion_array.append(result_emotion)
 
@@ -197,7 +215,7 @@ def main():
             # Topic check
             topic_style = check_topic(messages)
             # Emotion Check
-            current_emotion = emotion_check(emotion_array)
+            current_emotion = emotion_check2(emotion_array)
             # Add Operation
             operation = topic_control(current_emotion, topic_style)
             if operation != "None":

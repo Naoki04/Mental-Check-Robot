@@ -8,6 +8,8 @@ from tqdm import tqdm
 import pygame.mixer
 from mutagen.mp3 import MP3
 import cv2
+import requests
+import json
 
 from google.cloud import vision
 import io   
@@ -116,7 +118,7 @@ def capture_image(cap):
 
     return filename
 
-def emotion_recognition(filename):
+def emotion_recognition(filename): # Using Google Cloud Vision API
     
     """Detects faces in an image."""
     client = vision.ImageAnnotatorClient()
@@ -158,7 +160,19 @@ def emotion_recognition(filename):
             'https://cloud.google.com/apis/design/errors'.format(
                 response.error.message))
 
-
+def emotion_recognition2(filename): # using UserLocal API (https://userlocal.jp/webapi/docs/)    
+    url = "https://ai-api.userlocal.jp/human"
+    data = {'inference_type[]': ['emotion']}
+    with open(filename, 'rb') as image:
+        response = requests.post(url, data=data, files={"img_data": image})
+        data = json.loads(response.content)
+        results = data['results']
+        if len(results) == 0: # when no face is detected
+            return {'neutral': 0.2, 'happy': 0.1, 'sad': 0.1, 'surprise': 0.1, 'anger': 0.1}
+        d = results[0]
+        emotion_detail = d['emotion_detail']
+        print(f"Emotion: {emotion_detail}")
+    return emotion_detail
 
 def main():
     sr = 44100        # サンプリングレート
